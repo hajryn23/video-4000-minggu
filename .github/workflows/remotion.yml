@@ -1,0 +1,95 @@
+name: Remotion - 4000 Minggu
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/remotion.yml"
+  workflow_dispatch:
+    inputs:
+      full_render:
+        description: "Jalankan render penuh 100 detik setelah tes preview berhasil"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  preview-test:
+    name: Tes komposisi dan render preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure Remotion browser
+        run: npx remotion browser ensure
+
+      - name: Verify available compositions
+        run: npx remotion compositions src/index.jsx
+
+      - name: Render preview segment
+        run: npm run tes
+
+      - name: Render still frame
+        run: npm run foto
+
+      - name: Upload preview artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-4000-minggu-preview
+          path: |
+            out/tes.mp4
+            out/foto.png
+          if-no-files-found: warn
+          retention-days: 7
+
+  full-render:
+    name: Render video penuh
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_render }}
+    needs: preview-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure Remotion browser
+        run: npx remotion browser ensure
+
+      - name: Render full video
+        run: npm run render
+
+      - name: Upload full video
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-4000-minggu-full
+          path: out/video.mp4
+          if-no-files-found: error
+          retention-days: 7
