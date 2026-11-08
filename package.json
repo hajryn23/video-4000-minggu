@@ -1,0 +1,16 @@
+{
+  "name": "video-4000-minggu",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "foto": "remotion still src/index.jsx Minggu out/foto.png --frame=2150",
+    "tes": "remotion render src/index.jsx Minggu out/tes.mp4 --frames=1950-2099 --concurrency=2",
+    "render": "remotion render src/index.jsx Minggu out/video.mp4 --concurrency=2"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.541"
+  }
+}
